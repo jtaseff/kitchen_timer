@@ -107,7 +107,7 @@ for ii in range(3):
 # rect = Rect(20, 30, 21, 41, fill=0x0, outline=0xFFFFFF)
 
 
-MAIN_UPDATE_INTERVAL = 0.2
+MAIN_UPDATE_INTERVAL = 0.1
 last_main_update = 0
 
 
@@ -203,11 +203,11 @@ timers[2].Start()
 
 
 # RAW PIN VALUE METHOD
-# def make_pin_io(pin):
-    # io = digitalio.DigitalInOut(pin)
-    # io.direction = digitalio.Direction.INPUT
-    # io.pull = digitalio.Pull.UP
-    # return io
+def make_pin_io(pin):
+    io = digitalio.DigitalInOut(pin)
+    io.direction = digitalio.Direction.INPUT
+    io.pull = digitalio.Pull.UP
+    return io
 	
 
 # btnT1 = make_pin_io(board.D5)
@@ -215,21 +215,21 @@ timers[2].Start()
 # btnT3 = make_pin_io(board.D9)
 # btnS = make_pin_io(board.D10)
 # btn30sec = make_pin_io(board.D11)
-# btn1min = make_pin_io(board.D12)
-# btn5min = make_pin_io(board.D13)
+btnA2 = make_pin_io(board.D24)
+btnA3 = make_pin_io(board.A2)
 # END RAW PIN VALUE METHOD
 
 
 # COUNTIO METHOD
 # class countio.Counter(pin: microcontroller.Pin, *, edge: Edge = countio.Edge.FALL, pull: Optional[digitalio.Pull])
 import countio
-btnT1ctr = countio.Counter(pin=board.D5, edge=countio.Edge.FALL, pull=digitalio.Pull.UP)
-btnT2ctr = countio.Counter(pin=board.D6, edge=countio.Edge.FALL, pull=digitalio.Pull.UP)
-btnT3ctr = countio.Counter(pin=board.D9, edge=countio.Edge.FALL, pull=digitalio.Pull.UP)
-btnSRctr = countio.Counter(pin=board.D10, edge=countio.Edge.FALL, pull=digitalio.Pull.UP)
-btnA1ctr = countio.Counter(pin=board.D11, edge=countio.Edge.FALL, pull=digitalio.Pull.UP)
-btnA2ctr = countio.Counter(pin=board.D12, edge=countio.Edge.FALL, pull=digitalio.Pull.UP)
-btnA3ctr = countio.Counter(pin=board.D13, edge=countio.Edge.FALL, pull=digitalio.Pull.UP)
+btnT1ctr = countio.Counter(pin=board.SCL, edge=countio.Edge.RISE, pull=digitalio.Pull.DOWN)
+btnT2ctr = countio.Counter(pin=board.D5,  edge=countio.Edge.RISE, pull=digitalio.Pull.DOWN)
+btnT3ctr = countio.Counter(pin=board.D9,  edge=countio.Edge.RISE, pull=digitalio.Pull.DOWN)
+btnSRctr = countio.Counter(pin=board.D11, edge=countio.Edge.RISE, pull=digitalio.Pull.DOWN)
+btnA1ctr = countio.Counter(pin=board.D13, edge=countio.Edge.RISE, pull=digitalio.Pull.DOWN)
+# btnA2ctr = countio.Counter(pin=board.D24, edge=countio.Edge.FALL, pull=digitalio.Pull.UP)
+# btnA3ctr = countio.Counter(pin=board.A2, edge=countio.Edge.FALL, pull=digitalio.Pull.UP)
 # END COUNTIO METHOD
 
 
@@ -268,7 +268,7 @@ def AddToSelected(sec):
 			if timers[ii].GetIsIdle():
 				Select(ii)
 				break
-		print("Auto selected T{}".format(selected))
+		print("Auto selected T{}".format(selected+1))
 
 	sel = timers[selected]
 	if sel.IsTimeUp():
@@ -276,12 +276,12 @@ def AddToSelected(sec):
 		sel.Clear()
 		sel.AddDurationSec(sec)
 		sel.Start()
-		print("Cleared T{} and started with new time {}".format(selected, sec))
+		print("Cleared T{} and started with new time {}".format(selected+1, sec))
 	elif sel.state == sel.IDLE:
 		# start idle timer
 		sel.AddDurationSec(sec)
 		sel.Start()
-		print("Started T{} with new time {}".format(selected, sec))
+		print("Started T{} with new time {}".format(selected+1, sec))
 	else:
 		# add to running timer
 		sel.AddDurationSec(sec)
@@ -310,6 +310,12 @@ def Deselect():
 	print("Deselected")
 
 
+def ClearBtnCounters():
+	btnT1ctr.reset()
+	btnT2ctr.reset()
+	btnT3ctr.reset()
+	btnSRctr.reset()
+	btnA1ctr.reset()
 
 
 
@@ -329,84 +335,99 @@ while True:
 	# btn1min.update()
 	# btn5min.update()
 	
-	didselect = 0
+		# if btnS.fell:
+	# if btnS.value == 0 and NoBounce():
+	# if !NoBounce():
+		
 	
+	if btnSRctr.count > 0:
+		if NoBounce():
+			AnyButtonPressed()
+			ClearSelected()
+			btnSRctr.reset()
+			ClearBtnCounters()
+			print("R button")
 	
 	# react to buttons
 	# if btnT1.fell:
 	# if btnT1.value == 0 and NoBounce():
-	if btnT1ctr.count > 0 and NoBounce():
-		btnT1ctr.reset()
-		AnyButtonPressed()
-		didselect = Select(0)
+	if btnT1ctr.count > 0:
+		if NoBounce():
+			AnyButtonPressed()
+			Select(0)
+			btnT1ctr.reset()
+			ClearBtnCounters()
+			print("T1 button")
 	
 	# if btnT2.fell:
 	# if btnT2.value == 0 and NoBounce():
-	if btnT2ctr.count > 0 and NoBounce():
-		btnT2ctr.reset()
-		AnyButtonPressed()
-		didselect = Select(1)
+	if btnT2ctr.count > 0:
+		if NoBounce():
+			AnyButtonPressed()
+			Select(1)
+			btnT2ctr.reset()
+			ClearBtnCounters()
+			print("T2 button")
 	
 	# if btnT3.fell:
 	# if btnT3.value == 0 and NoBounce():
-	if btnT3ctr.count > 0 and NoBounce():
-		btnT3ctr.reset()
-		AnyButtonPressed()
-		didselect = Select(2)
+	if btnT3ctr.count > 0:
+		if NoBounce():
+			AnyButtonPressed()
+			Select(2)
+			btnT3ctr.reset()
+			ClearBtnCounters()
+			print("T3 button")
 	
 	# if btn30sec.fell:
 	# if btn30sec.value == 0 and NoBounce():
-	if btnA1ctr.count > 0 and NoBounce():
-		btnA1ctr.reset()
-		AnyButtonPressed()
-		AddToSelected(CFG_BTN1_DURATION)
+	if btnA1ctr.count > 0:
+		if NoBounce():
+			AnyButtonPressed()
+			AddToSelected(CFG_BTN1_DURATION)
+			btnA1ctr.reset()
+			ClearBtnCounters()
+			print("A1 button")
 	
 	# if btn1min.fell:
-	# if btn1min.value == 0 and NoBounce():
-	if btnA2ctr.count > 0 and NoBounce():
-		btnA2ctr.reset()
+	if btnA2.value == 0 and NoBounce():
+	# if btnA2ctr.count > 0 and NoBounce():
+		# btnA2ctr.reset()
 		AnyButtonPressed()
 		AddToSelected(CFG_BTN2_DURATION)
+		print("A2 button")
 	
 	# if btn5min.fell:
-	# if btn5min.value == 0 and NoBounce():
-	if btnA3ctr.count > 0 and NoBounce():
-		btnA3ctr.reset()
+	if btnA3.value == 0 and NoBounce():
+	# if btnA3ctr.count > 0 and NoBounce():
+		# btnA3ctr.reset()
 		AnyButtonPressed()
 		AddToSelected(CFG_BTN3_DURATION)
+		print("A3 button")
 		
-	# if btnS.fell:
-	# if btnS.value == 0 and NoBounce():
-	if btnSRctr.count > 0 and NoBounce():
-		btnSRctr.reset()
-		AnyButtonPressed()
-		ClearSelected()
-		didselect = True
+
 	
 	
 	
 	
 	# update the timers and displays every 200ms
-	if time.monotonic() > last_main_update + MAIN_UPDATE_INTERVAL:
-		last_main_update = time.monotonic()
+	# if time.monotonic() > last_main_update + MAIN_UPDATE_INTERVAL:
+	# last_main_update = time.monotonic()
+
+	# update the timer data
+	timers[0].Update()
+	timers[1].Update()
+	timers[2].Update()
 	
-		# update the timer data
-		# timer1.Update()
-		# timer2.Update()
-		# timer3.Update()
-		timers[0].Update()
-		timers[1].Update()
-		timers[2].Update()
-		
-		profstart = time.monotonic()
-		
-		# update the display
-		Updatetimelabels()
-		
-		profend = time.monotonic()
-		
-		proftime = profend - profstart
-		print(proftime)
+	profstart = time.monotonic()
+	
+	# update the display
+	Updatetimelabels()
+	
+	profend = time.monotonic()
+	
+	proftime = profend - profstart
+	# print(proftime)
 
 
 
