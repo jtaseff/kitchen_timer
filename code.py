@@ -156,9 +156,8 @@ def Updatetimelabels():
 # create the list of timers
 from jtimer import jtimer
 timers = []
-timers.append(jtimer())
-timers.append(jtimer())
-timers.append(jtimer())
+for ii in range(3):
+	timers.append(jtimer())
 
 
 # AUTO TEST ON STARTUP
@@ -182,57 +181,35 @@ timers[2].Start()
 
 # pins are 5, 6, 9, 10, 11, 12, 13
 
+# KEYPAD METHOD
+import keypad
 
+# define key order being used
+KEY_PINS = (
+    board.D5,
+    board.D6,
+    board.D9,
+    board.D10,
+    board.D11,
+    board.D12,
+    board.D13
+)
 
-# DEBOUNCER METHOD
-# from adafruit_debouncer import Debouncer
-# def make_pin_reader(pin):
-    # io = digitalio.DigitalInOut(pin)
-    # io.direction = digitalio.Direction.INPUT
-    # io.pull = digitalio.Pull.UP
-    # return lambda: io.value
-	
-# btnT1 = Debouncer(make_pin_reader(board.D5))
-# btnT2 = Debouncer(make_pin_reader(board.D6))
-# btnT3 = Debouncer(make_pin_reader(board.D9))
-# btnS = Debouncer(make_pin_reader(board.D10))
-# btn30sec = Debouncer(make_pin_reader(board.D11))
-# btn1min = Debouncer(make_pin_reader(board.D12))
-# btn5min = Debouncer(make_pin_reader(board.D13))
-# END DEBOUNCER METHOD
+T1event = keypad.Event(0, True)   # Button T1 pressed
+T2event = keypad.Event(1, True)   # Button T2 pressed
+T3event = keypad.Event(2, True)   # Button T3 pressed
+SRevent = keypad.Event(3, True)   # Button SR pressed
+A1event = keypad.Event(4, True)   # Button A1 pressed
+A2event = keypad.Event(5, True)   # Button A2 pressed
+A3event = keypad.Event(6, True)   # Button A3 pressed
 
+# create keypad object to read the pins
+keys = keypad.Keys(KEY_PINS, value_when_pressed=True, pull=True)
 
-# RAW PIN VALUE METHOD
-def make_pin_io(pin):
-    io = digitalio.DigitalInOut(pin)
-    io.direction = digitalio.Direction.INPUT
-    io.pull = digitalio.Pull.UP
-    return io
-	
+# create a blank event - we will always get key events into this to avoid allocating new ones every time
+event = keypad.Event()
 
-# btnT1 = make_pin_io(board.D5)
-# btnT2 = make_pin_io(board.D6)
-# btnT3 = make_pin_io(board.D9)
-# btnS = make_pin_io(board.D10)
-# btn30sec = make_pin_io(board.D11)
-btnA2 = make_pin_io(board.D24)
-btnA3 = make_pin_io(board.A2)
-# END RAW PIN VALUE METHOD
-
-
-# COUNTIO METHOD
-# class countio.Counter(pin: microcontroller.Pin, *, edge: Edge = countio.Edge.FALL, pull: Optional[digitalio.Pull])
-import countio
-btnT1ctr = countio.Counter(pin=board.SCL, edge=countio.Edge.RISE, pull=digitalio.Pull.DOWN)
-btnT2ctr = countio.Counter(pin=board.D5,  edge=countio.Edge.RISE, pull=digitalio.Pull.DOWN)
-btnT3ctr = countio.Counter(pin=board.D9,  edge=countio.Edge.RISE, pull=digitalio.Pull.DOWN)
-btnSRctr = countio.Counter(pin=board.D11, edge=countio.Edge.RISE, pull=digitalio.Pull.DOWN)
-btnA1ctr = countio.Counter(pin=board.D13, edge=countio.Edge.RISE, pull=digitalio.Pull.DOWN)
-# btnA2ctr = countio.Counter(pin=board.D24, edge=countio.Edge.FALL, pull=digitalio.Pull.UP)
-# btnA3ctr = countio.Counter(pin=board.A2, edge=countio.Edge.FALL, pull=digitalio.Pull.UP)
-# END COUNTIO METHOD
-
-
+# END KEYPAD METHOD
 
 
 
@@ -326,108 +303,67 @@ def ClearBtnCounters():
 
 while True:
 	
-	# update all the button states
-	# btnT1.update()
-	# btnT2.update()
-	# btnT3.update()
-	# btnS.update()
-	# btn30sec.update()
-	# btn1min.update()
-	# btn5min.update()
 	
-		# if btnS.fell:
-	# if btnS.value == 0 and NoBounce():
-	# if !NoBounce():
+	
+    
+    # event will be None if nothing has happened.
+	if keys.events.get_into(event):
+		print(event)
 		
-	
-	if btnSRctr.count > 0:
-		if NoBounce():
+		if event.pressed:
+			# record that something pressed, track timing for some logic
 			AnyButtonPressed()
-			ClearSelected()
-			btnSRctr.reset()
-			ClearBtnCounters()
-			print("R button")
-	
-	# react to buttons
-	# if btnT1.fell:
-	# if btnT1.value == 0 and NoBounce():
-	if btnT1ctr.count > 0:
-		if NoBounce():
-			AnyButtonPressed()
+		
+		
+		if event == T1event:
 			Select(0)
-			btnT1ctr.reset()
-			ClearBtnCounters()
 			print("T1 button")
-	
-	# if btnT2.fell:
-	# if btnT2.value == 0 and NoBounce():
-	if btnT2ctr.count > 0:
-		if NoBounce():
-			AnyButtonPressed()
+			
+		if event == T2event:
 			Select(1)
-			btnT2ctr.reset()
-			ClearBtnCounters()
 			print("T2 button")
-	
-	# if btnT3.fell:
-	# if btnT3.value == 0 and NoBounce():
-	if btnT3ctr.count > 0:
-		if NoBounce():
-			AnyButtonPressed()
+			
+		if event == T3event:
 			Select(2)
-			btnT3ctr.reset()
-			ClearBtnCounters()
 			print("T3 button")
-	
-	# if btn30sec.fell:
-	# if btn30sec.value == 0 and NoBounce():
-	if btnA1ctr.count > 0:
-		if NoBounce():
-			AnyButtonPressed()
-			AddToSelected(CFG_BTN1_DURATION)
-			btnA1ctr.reset()
-			ClearBtnCounters()
+			
+		if event == A1event:
 			print("A1 button")
-	
-	# if btn1min.fell:
-	if btnA2.value == 0 and NoBounce():
-	# if btnA2ctr.count > 0 and NoBounce():
-		# btnA2ctr.reset()
-		AnyButtonPressed()
-		AddToSelected(CFG_BTN2_DURATION)
-		print("A2 button")
-	
-	# if btn5min.fell:
-	if btnA3.value == 0 and NoBounce():
-	# if btnA3ctr.count > 0 and NoBounce():
-		# btnA3ctr.reset()
-		AnyButtonPressed()
-		AddToSelected(CFG_BTN3_DURATION)
-		print("A3 button")
+			AddToSelected(CFG_BTN1_DURATION)
 		
-
-	
-	
-	
-	
-	# update the timers and displays every 200ms
-	# if time.monotonic() > last_main_update + MAIN_UPDATE_INTERVAL:
-	# last_main_update = time.monotonic()
-
-	# update the timer data
-	timers[0].Update()
-	timers[1].Update()
-	timers[2].Update()
-	
-	profstart = time.monotonic()
-	
-	# update the display
-	Updatetimelabels()
-	
-	profend = time.monotonic()
-	
-	proftime = profend - profstart
-	# print(proftime)
+		if event == A2event:
+			print("A2 button")
+			AddToSelected(CFG_BTN2_DURATION)
+		
+		if event == A3event:
+			print("A3 button")
+			AddToSelected(CFG_BTN3_DURATION)
+		
+		if event == SRevent:
+			print("SR button")
+			ClearSelected()
+		
+		
+		
+		
+	else:
+		
+		# update the displays only after we have handled button events, since it will block for a 
+		
+		# update the timer data
+		timers[0].Update()
+		timers[1].Update()
+		timers[2].Update()
+		
+		profstart = time.monotonic()
+		
+		# update the display
+		Updatetimelabels()
+		
+		profend = time.monotonic()
+		
+		proftime = profend - profstart
+		# print(proftime)
 
 
 
